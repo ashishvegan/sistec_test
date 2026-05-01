@@ -1,0 +1,72 @@
+<%- include('header') %>
+
+<div class="grid grid-cols-2 gap-6">
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl mb-4">Current Data</h2>
+
+<p>Temperature: <%= current?.temperature %> °C</p>
+<p>Humidity: <%= current?.humidity %> %</p>
+<p>Time: <%= current?.created_at %></p>
+
+</div>
+
+</div>
+
+<div class="mt-8 bg-white p-6 shadow rounded">
+
+<h2 class="text-xl mb-4">All Records</h2>
+
+<table class="w-full border">
+
+<tr class="bg-gray-200">
+
+<th>ID</th>
+<th>Temp</th>
+<th>Humidity</th>
+<th>Date</th>
+<th>Action</th>
+
+</tr>
+
+<% data.forEach(d=>{ %>
+
+<tr class="text-center border">
+
+<td><%= d.id %></td>
+<td><%= d.temperature %></td>
+<td><%= d.humidity %></td>
+<td><%= new Date(d.created_at).toLocaleString() %></td>
+
+<td>
+<a href="/delete/<%= d.id %>"
+class="text-red-500">
+Delete
+</a>
+</td>
+
+</tr>
+
+<% }) %>
+
+</table>
+
+<div class="mt-4">
+
+<% for(let i=1;i<=Math.ceil(total/limit);i++){ %>
+
+<a href="/dashboard?page=<%= i %>"
+class="px-3 py-1 border">
+
+<%= i %>
+
+</a>
+
+<% } %>
+
+</div>
+
+</div>
+
+<%- include('footer') %>
