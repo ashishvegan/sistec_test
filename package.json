@@ -2,19 +2,16 @@
   "name": "sistec.workshop",
   "version": "1.0.0",
   "description": "",
-  "main": "api.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^9.4.0",
     "body-parser": "^2.2.2",
-    "ejs": "^5.0.2",
-    "express": "^5.2.1",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
     "express-session": "^1.19.0"
   },
   "engines": {
