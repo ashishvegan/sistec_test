@@ -7,6 +7,7 @@ const db = require('./db');
 const app = express();
 
 app.set('view engine','ejs');
+app.set('views', __dirname + '/views');
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -40,25 +41,29 @@ const {name,email,password}=req.body;
 
 const hash = await bcrypt.hash(password,10);
 
-db.run(
-"INSERT INTO users(name,email,password) VALUES(?,?,?)",
-[name,email,hash],
-(err)=>{
-if(err) return res.send("User Exists");
+try{
+
+db.prepare(
+"INSERT INTO users(name,email,password) VALUES(?,?,?)"
+).run(name,email,hash);
 
 res.redirect('/');
-});
+
+}catch(err){
+
+res.send("User Exists");
+
+}
 
 });
 
-app.post('/login',(req,res)=>{
+app.post('/login', async (req,res)=>{
 
 const {email,password}=req.body;
 
-db.get(
-"SELECT * FROM users WHERE email=?",
-[email],
-async (err,user)=>{
+const user = db.prepare(
+"SELECT * FROM users WHERE email=?"
+).get(email);
 
 if(!user) return res.send("Invalid Login");
 
@@ -67,7 +72,6 @@ const match = await bcrypt.compare(password,user.password);
 if(match){
 
 req.session.user=user;
-
 res.redirect('/dashboard');
 
 }else{
@@ -78,25 +82,23 @@ res.send("Wrong Password");
 
 });
 
-});
-
 app.get('/dashboard',auth,(req,res)=>{
 
-db.get(
-"SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1",
-[],
-(err,current)=>{
+const current = db.prepare(
+"SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1"
+).get();
 
-const page = req.query.page || 1;
+const page = parseInt(req.query.page) || 1;
 const limit = 10;
 const offset = (page-1)*limit;
 
-db.all(
-"SELECT * FROM sensor_data ORDER BY id DESC LIMIT ? OFFSET ?",
-[limit,offset],
-(err,rows)=>{
+const rows = db.prepare(
+"SELECT * FROM sensor_data ORDER BY id DESC LIMIT ? OFFSET ?"
+).all(limit,offset);
 
-db.get("SELECT COUNT(*) as total FROM sensor_data",(err,count)=>{
+const count = db.prepare(
+"SELECT COUNT(*) as total FROM sensor_data"
+).get();
 
 res.render('dashboard',{
 user:req.session.user,
@@ -109,15 +111,11 @@ limit:limit
 
 });
 
-});
-
-});
-
-});
-
 app.get('/delete/:id',auth,(req,res)=>{
 
-db.run("DELETE FROM sensor_data WHERE id=?",[req.params.id]);
+db.prepare(
+"DELETE FROM sensor_data WHERE id=?"
+).run(req.params.id);
 
 res.redirect('/dashboard');
 
@@ -140,10 +138,9 @@ if(key!==API_KEY){
 return res.json({status:"unauthorized"});
 }
 
-db.run(
-"INSERT INTO sensor_data(temperature,humidity) VALUES(?,?)",
-[temperature,humidity]
-);
+db.prepare(
+"INSERT INTO sensor_data(temperature,humidity) VALUES(?,?)"
+).run(temperature,humidity);
 
 res.json({status:"success"});
 
